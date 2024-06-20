@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+    document-server:
+        container_name: document-server
+        image: onlyoffice/documentserver:8.0
+        expose:
+            - "80"
+        environment:
+            - JWT_SECRET=my-jwt-secret
+        networks:
+            - app-network
+
+    app:
+        container_name: editor_php
+        build:
+            context: .
+            target: editor
+        expose:
+            - "80"
+        volumes:
+            - "./:/srv"
+        environment:
+            - ADDRESS=0.0.0.0
+            - DOCUMENT_SERVER_PRIVATE_URL=http://proxy:8080
+            - DOCUMENT_SERVER_PUBLIC_URL=http://localhost:8080
+            - EXAMPLE_URL=http://proxy
+            - JWT_SECRET=my-jwt-secret
+            - PORT=80
+        networks:
+            - app-network
+
+    proxy:
+        container_name: proxy
+        build:
+            context: .
+            target: proxy
+        depends_on:
+            - document-server
+            - app
+        ports:
+            - "80:80"
+            - "8080:8080"
+        volumes:
+            - "./:/srv"
+        networks:
+            - app-network
+
+volumes:
+    example:
+
+networks:
+    app-network:
