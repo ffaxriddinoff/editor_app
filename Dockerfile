@@ -5,16 +5,15 @@ WORKDIR /srv
 RUN chown -R www-data:www-data /srv
 
 # Install Composer
-RUN apk add --no-cache curl && \
+RUN apk add --no-cache curl make && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # RUN make prod
-
- CMD ["make", "server-prod"]
 EXPOSE 80
 
-# Specify the default command to run on container start
-CMD ["php-fpm"]
+CMD ["sh", "-c", "make prod && php-fpm"]
+
+
 
 
 FROM nginx:1.23.4-alpine3.17 AS proxy

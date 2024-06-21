@@ -15,6 +15,7 @@ dev: #           Install development dependencies.
 .PHONY: prod
 prod: #          Install production dependencies.
 	@composer install --no-dev
+	@php artisan optimize
 
 ifeq ($(ADDRESS),)
 server-dev: \
