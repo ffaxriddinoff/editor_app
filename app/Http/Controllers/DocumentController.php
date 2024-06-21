@@ -2,85 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use Firebase\JWT\JWT;
+use App\Services\DocumentService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
+    public function __construct(
+        private readonly DocumentService $documentService
+    )
+    {
+    }
+
     public function show()
     {
-        $payload = [
-            'document' => [
-                'fileType' => 'docx',
-                'key' => uniqid(),
-                'title' => "test title",
-                'url' => asset('test.docx'),
-            ],
-            'editorConfig' => [
-                'callbackUrl' => route('documents.save'),
-            ],
-        ];
-
-        $token = $this->generateToken($payload);
-
-        $config = [
-            'document' => [
-                'fileType' => 'docx',
-                'key' => uniqid(),
-                'title' => "test title",
-                'url' => asset('test.docx'),
-                'token' => $token
-            ],
-            'editorConfig' => [
-                'callbackUrl' => asset('callback.php?file_name=asset.docx'),
-                'token' => $token
-            ],
-        ];
-//        dd(123);
-        return view('welcome', [
-            'config' => $config
+        return view('editor', [
+            'config' => $this->documentService->config,
+            'token' => generateToken($this->documentService->config)
         ]);
     }
 
-    private function generateToken($payload)
+    public function download($file)
     {
-        $key = config('services.onlyoffice.jwt_secret');
-        return JWT::encode($payload, $key, 'HS256');
-    }
-
-    public function save(Request $request)
-    {
-//        dd($request);
-        $token = $request->input('token');
-        if (!$this->verifyToken($token)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        // Handle the document save callback from OnlyOffice
-        $data = $request->all();
-        $this->saveDocument($data);
-
-        return response()->json(['success' => true]);
-    }
-
-    private function verifyToken($token)
-    {
-        $key = config('services.onlyoffice.jwt_secret');
         try {
-            $decoded = JWT::decode($token, $key);
-            return true;
-        } catch (\Exception $e) {
-            return false;
+            $filePath = $this->documentService->getOrCreateFileByName($file);
+
+            return response()->streamDownload(function () use ($filePath) {
+                $fileStream = fopen($filePath, 'rb');
+                fpassthru($fileStream);
+                fclose($fileStream);
+            }, $file);
+
+        } catch (\Exception) {
+            sendlog("error while downloading file", 'download');
+            return ["error" => "File not found"];
         }
     }
 
-    private function getDocumentById($id)
+    /**
+     * @throws \Exception
+     */
+    public function save(Request $request): JsonResponse
     {
-        // Implement your logic to fetch the document by ID
-    }
+        $data = $request->all();
 
-    private function saveDocument($data)
-    {
-        // Implement your logic to save the document changes
+        if (isset($data['status']) && $data['status'] == 2) {
+            $this->documentService->saveFile($data);
+        }
+
+        return response()->json(['error' => 0]);
     }
 }

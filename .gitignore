@@ -4,6 +4,7 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/logsweb.log
 /vendor
 .env
 .env.backup
