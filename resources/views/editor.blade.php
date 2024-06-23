@@ -11,7 +11,7 @@
 
 
 <div id="placeholder"></div>
-<script type="text/javascript" src="http://localhost:8081/web-apps/apps/api/documents/api.js"></script>
+<script type="text/javascript" src="{{ $js_url }}"></script>
 
 <script type="text/javascript">
     var docEditor;

@@ -17,6 +17,7 @@ class DocumentController extends Controller
     public function show()
     {
         return view('editor', [
+            'js_url' => config('services.onlyoffice.url') . "/web-apps/apps/api/documents/api.js",
             'config' => $this->documentService->config,
             'token' => generateToken($this->documentService->config)
         ]);

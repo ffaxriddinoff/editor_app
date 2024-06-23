@@ -37,5 +37,6 @@ return [
 
     'onlyoffice' => [
         'jwt_secret' => env('ONLYOFFICE_JWT_SECRET'),
+        'url' => env('ONLYOFFICE_SERVER_URL'),
     ],
 ];

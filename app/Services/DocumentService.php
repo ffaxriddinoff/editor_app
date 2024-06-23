@@ -17,11 +17,11 @@ class DocumentService
                 'fileType' => 'docx',
                 'key' => uniqid(),
                 'title' => "test title",
-                'url' => "http://proxy/download/test.docx",
+                'url' => config('app.url') . "/download/test.docx",
             ],
             'editorConfig' => [
                 "mode" => "edit",
-                'callbackUrl' => "http://proxy/documents/save",
+                'callbackUrl' => config('app.url') . "/documents/save",
             ],
         ];
     }
